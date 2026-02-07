@@ -1,0 +1,2508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide CSS Complet - Structure, Sélecteurs, Combinateurs & Couleurs</title>
+    
+    <!-- 
+    ========================================
+    ORGANISATION DU FICHIER
+    ========================================
+    1. CSS Variables (lignes ~40-80) - Modifier ici pour changer la palette de couleurs
+    2. Styles généraux et responsive
+    3. Composants UI (cards, buttons, quiz, editor)
+    4. Animations et transitions
+    5. JavaScript (fin du fichier) :
+       - Quiz questions (tableau QUIZ_DATA ~ligne 1800)
+       - Validation éditeur CSS
+       - Mode présentation
+       - Gestion thème clair/sombre
+    
+    Pour ajouter du contenu :
+    - Sections pédagogiques : chercher <section class="content-section">
+    - Questions quiz : modifier le tableau QUIZ_DATA en JS
+    - Exemples : ajouter dans .example-box
+    ========================================
+    -->
+    
+    <style>
+        /* ==================== VARIABLES CSS ==================== */
+        :root {
+            /* Palette claire */
+            --bg: #f8f9fa;
+            --surface: #ffffff;
+            --surface-elevated: #ffffff;
+            --text: #1a1a2e;
+            --text-muted: #6c757d;
+            --accent: #6366f1;
+            --accent-2: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --border: #e5e7eb;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-strong: rgba(0, 0, 0, 0.15);
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            
+            /* Typography */
+            --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+            
+            /* Border radius */
+            --radius-sm: 0.5rem;
+            --radius-md: 1rem;
+            --radius-lg: 1.5rem;
+            
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 400ms ease;
+        }
+        
+        /* Dark mode palette */
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-elevated: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #818cf8;
+            --accent-2: #a78bfa;
+            --accent-hover: #6366f1;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-strong: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* ==================== RESET & BASE ==================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-system);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background var(--transition-base), color var(--transition-base);
+        }
+        
+        /* ==================== TYPOGRAPHY ==================== */
+        h1, h2, h3, h4, h5, h6 {
+            line-height: 1.2;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 700;
+        }
+        
+        h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+        h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+        h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        h4 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
+        
+        p { margin-bottom: var(--spacing-sm); }
+        
+        code {
+            font-family: var(--font-mono);
+            background: var(--surface-elevated);
+            padding: 0.2em 0.4em;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+            border: 1px solid var(--border);
+        }
+        
+        pre {
+            background: var(--surface-elevated);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        pre code {
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        
+        /* ==================== LAYOUT ==================== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+        
+        /* ==================== HEADER ==================== */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            gap: var(--spacing-sm);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+            align-items: center;
+        }
+        
+        /* ==================== HERO ==================== */
+        .hero {
+            position: relative;
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--spacing-xl) var(--spacing-md);
+            overflow: hidden;
+            background: var(--gradient-primary);
+        }
+        
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            max-width: 800px;
+        }
+        
+        .hero h1 {
+            margin-bottom: var(--spacing-md);
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        /* ==================== NAVIGATION ==================== */
+        .nav-pills {
+            display: flex;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-md);
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            margin: calc(-1 * var(--spacing-lg)) auto var(--spacing-lg);
+            max-width: max-content;
+            box-shadow: 0 10px 40px var(--shadow-strong);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .nav-pill {
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            border: 2px solid transparent;
+            font-weight: 500;
+        }
+        
+        .nav-pill:hover, .nav-pill:focus-visible {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* ==================== SECTIONS ==================== */
+        .content-section {
+            padding: var(--spacing-xl) 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .section-header h2 {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .section-intro {
+            max-width: 700px;
+            margin: 0 auto var(--spacing-lg);
+            text-align: center;
+            color: var(--text-muted);
+        }
+        
+        /* ==================== CARDS ==================== */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--border);
+            transition: all var(--transition-base);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px var(--shadow-strong);
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            color: var(--accent);
+        }
+        
+        .card-icon {
+            width: 2rem;
+            height: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .grid {
+            display: grid;
+            gap: var(--spacing-md);
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        
+        /* ==================== EXAMPLE BOXES ==================== */
+        .example-box {
+            background: var(--surface-elevated);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            border-left: 4px solid var(--accent);
+            margin: var(--spacing-md) 0;
+        }
+        
+        .example-title {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .example-demo {
+            background: var(--bg);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            margin-top: var(--spacing-sm);
+            border: 1px dashed var(--border);
+        }
+        
+        /* ==================== BUTTONS ==================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: var(--font-system);
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 102, 241, 0.3);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus-visible {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 25px rgba(102, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--surface-elevated);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+        
+        .btn-secondary:hover, .btn-secondary:focus-visible {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .btn-icon {
+            padding: var(--spacing-xs);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+        
+        /* ==================== EDITOR ==================== */
+        .editor-container {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 8px 30px var(--shadow-strong);
+            border: 1px solid var(--border);
+        }
+        
+        .editor-header {
+            background: var(--surface-elevated);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+        
+        .editor-title {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .editor-stats {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        .editor-body {
+            display: grid;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+        }
+        
+        @media (min-width: 768px) {
+            .editor-body {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .editor-input {
+            width: 100%;
+            min-height: 200px;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            background: var(--bg);
+            color: var(--text);
+            resize: vertical;
+            transition: border-color var(--transition-fast);
+        }
+        
+        .editor-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .editor-preview {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-md);
+            min-height: 200px;
+        }
+        
+        .editor-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+            flex-wrap: wrap;
+        }
+        
+        .editor-error {
+            padding: var(--spacing-sm);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--error);
+            font-size: 0.875rem;
+        }
+        
+        /* ==================== QUIZ ==================== */
+        .quiz-container {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: 0 8px 30px var(--shadow-strong);
+            border: 1px solid var(--border);
+        }
+        
+        .quiz-progress {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            transition: width var(--transition-slow);
+        }
+        
+        .progress-text {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        .quiz-question {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .quiz-options {
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+        
+        .quiz-option {
+            padding: var(--spacing-md);
+            background: var(--surface-elevated);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: left;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+        
+        .quiz-option.selected {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .quiz-option.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .quiz-option.incorrect {
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .quiz-feedback {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .quiz-feedback.incorrect {
+            border-left-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .quiz-results {
+            text-align: center;
+        }
+        
+        .score-display {
+            font-size: 4rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: var(--spacing-md) 0;
+        }
+        
+        .results-message {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        /* ==================== PRESENTATION MODE ==================== */
+        .presentation-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg);
+        }
+        
+        .presentation-overlay.active {
+            display: flex;
+        }
+        
+        .presentation-slide {
+            max-width: 1000px;
+            width: 100%;
+            padding: var(--spacing-xl);
+            display: none;
+        }
+        
+        .presentation-slide.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .presentation-nav {
+            position: fixed;
+            bottom: var(--spacing-lg);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: var(--spacing-sm);
+            background: var(--surface);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 20px var(--shadow-strong);
+        }
+        
+        .slide-counter {
+            position: fixed;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            background: var(--surface);
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+        
+        /* ==================== UTILITIES ==================== */
+        .text-center { text-align: center; }
+        .text-muted { color: var(--text-muted); }
+        .mb-sm { margin-bottom: var(--spacing-sm); }
+        .mb-md { margin-bottom: var(--spacing-md); }
+        .mb-lg { margin-bottom: var(--spacing-lg); }
+        .mt-md { margin-top: var(--spacing-md); }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .badge-success { background: var(--success); }
+        .badge-warning { background: var(--warning); }
+        .badge-error { background: var(--error); }
+        
+        /* ==================== LIST STYLES ==================== */
+        .styled-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .styled-list li {
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .styled-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        
+        /* ==================== TABLE ==================== */
+        .table-container {
+            overflow-x: auto;
+            margin: var(--spacing-md) 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: var(--spacing-sm);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--surface-elevated);
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* ==================== ANIMATIONS ==================== */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* ==================== ACCESSIBILITY ==================== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        :focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+        
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .hero { min-height: 50vh; padding: var(--spacing-lg) var(--spacing-md); }
+            .nav-pills { margin: calc(-1 * var(--spacing-md)) var(--spacing-md) var(--spacing-md); }
+            .grid { grid-template-columns: 1fr; }
+            .header-content { flex-wrap: wrap; }
+            .logo { font-size: 1.25rem; }
+        }
+        
+        /* ==================== FOOTER ==================== */
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: var(--spacing-xl) 0;
+            margin-top: var(--spacing-xl);
+            text-align: center;
+        }
+        
+        footer p {
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-xs);
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- ==================== HEADER ==================== -->
+    <header class="header" role="banner">
+        <div class="header-content container">
+            <div class="logo" aria-label="CSS Guide">CSS Guide</div>
+            <div class="header-actions">
+                <button class="btn btn-icon btn-secondary" id="theme-toggle" aria-label="Changer le thème">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button class="btn btn-secondary" id="presentation-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    Présentation
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- ==================== HERO ==================== -->
+    <section class="hero" role="banner">
+        <svg class="hero-bg" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgb(102,126,234);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgb(118,75,162);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path d="M0,300 Q300,100 600,300 T1200,300 L1200,600 L0,600 Z" fill="url(#grad1)" opacity="0.3" class="animate-float"/>
+            <path d="M0,350 Q300,150 600,350 T1200,350 L1200,600 L0,600 Z" fill="url(#grad1)" opacity="0.2" style="animation-delay: -2s;" class="animate-float"/>
+        </svg>
+        <div class="hero-content">
+            <h1>Guide CSS Complet</h1>
+            <p>Maîtrisez les fondamentaux CSS : structure, sélecteurs, combinateurs et couleurs avec des exemples interactifs et pratiques.</p>
+        </div>
+    </section>
+    
+    <!-- ==================== NAVIGATION ==================== -->
+    <nav class="nav-pills container" role="navigation" aria-label="Navigation principale">
+        <a href="#structure" class="nav-pill">Structure</a>
+        <a href="#selectors" class="nav-pill">Sélecteurs</a>
+        <a href="#combinators" class="nav-pill">Combinateurs</a>
+        <a href="#colors" class="nav-pill">Couleurs</a>
+        <a href="#atelier" class="nav-pill">Atelier</a>
+        <a href="#quiz" class="nav-pill">Quiz</a>
+        <a href="#resources" class="nav-pill">Ressources</a>
+    </nav>
+    
+    <main class="container">
+        
+        <!-- ==================== SECTION 1: STRUCTURE CSS ==================== -->
+        <section id="structure" class="content-section">
+            <div class="section-header">
+                <h2>Structure d'une règle CSS</h2>
+                <p class="section-intro">Une règle CSS est composée d'un sélecteur et d'un bloc de déclarations. Comprendre cette structure est fondamental pour maîtriser CSS.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                    <h3>Anatomie d'une règle CSS</h3>
+                </div>
+                
+                <p><strong>Définition :</strong> Une règle CSS est une instruction qui applique un style à un ou plusieurs éléments HTML. Elle se compose de deux parties principales : le <strong>sélecteur</strong> (qui cible les éléments) et le <strong>bloc de déclarations</strong> (qui définit les styles).</p>
+                
+                <pre><code>/* Structure de base */
+sélecteur {
+    propriété: valeur;
+    propriété: valeur;
+}</code></pre>
+                
+                <div class="example-box">
+                    <div class="example-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                        Exemple simple
+                    </div>
+                    <pre><code>/* Cible tous les paragraphes */
+p {
+    color: blue;        /* Déclaration 1 */
+    font-size: 16px;    /* Déclaration 2 */
+    margin: 20px;       /* Déclaration 3 */
+}</code></pre>
+                    <div class="example-demo">
+                        <p style="color: blue; font-size: 16px; margin: 20px;">Ceci est un paragraphe stylisé avec les règles ci-dessus.</p>
+                    </div>
+                </div>
+                
+                <div class="example-box">
+                    <div class="example-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                        Exemple avec multiples sélecteurs
+                    </div>
+                    <pre><code>/* Cible h1, h2 et h3 en même temps */
+h1, h2, h3 {
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin-bottom: 1rem;
+}</code></pre>
+                </div>
+                
+                <h4 class="mt-md">Composants d'une déclaration</h4>
+                <ul class="styled-list">
+                    <li><strong>Propriété</strong> : le nom de la caractéristique à modifier (ex : <code>color</code>, <code>font-size</code>)</li>
+                    <li><strong>Valeur</strong> : la nouvelle valeur assignée (ex : <code>red</code>, <code>16px</code>)</li>
+                    <li><strong>Deux-points</strong> : sépare la propriété de la valeur</li>
+                    <li><strong>Point-virgule</strong> : termine chaque déclaration (obligatoire sauf pour la dernière, mais recommandé)</li>
+                </ul>
+                
+                <h4 class="mt-md">Unités CSS communes</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Unité</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Exemple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>px</code></td>
+                                <td>Absolue</td>
+                                <td>Pixels</td>
+                                <td><code>font-size: 16px;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%</code></td>
+                                <td>Relative</td>
+                                <td>Pourcentage du parent</td>
+                                <td><code>width: 50%;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>em</code></td>
+                                <td>Relative</td>
+                                <td>Relatif à la taille de police parent</td>
+                                <td><code>margin: 1.5em;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>rem</code></td>
+                                <td>Relative</td>
+                                <td>Relatif à la taille de police root</td>
+                                <td><code>padding: 2rem;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>vh/vw</code></td>
+                                <td>Relative</td>
+                                <td>Viewport height/width</td>
+                                <td><code>height: 100vh;</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h4 class="mt-md">!important et spécificité</h4>
+                <p>Le mot-clé <code>!important</code> force une déclaration à avoir la priorité maximale. <strong>À éviter</strong> sauf cas exceptionnel car il rend le code difficile à maintenir.</p>
+                <pre><code>/* Utilisation (non recommandée) */
+.button {
+    background: red !important; /* Surcharge toutes autres règles */
+}</code></pre>
+                
+                <div class="example-box">
+                    <div class="example-title">Bonnes pratiques</div>
+                    <ul class="styled-list">
+                        <li>Toujours terminer chaque déclaration par un point-virgule</li>
+                        <li>Indenter le code pour une meilleure lisibilité</li>
+                        <li>Grouper les propriétés connexes (positionnement, box-model, typographie, visuel)</li>
+                        <li>Utiliser des commentaires pour les sections complexes</li>
+                        <li>Préférer les unités relatives (<code>rem</code>, <code>em</code>) pour la scalabilité</li>
+                        <li>Éviter <code>!important</code> - privilégier une meilleure spécificité</li>
+                    </ul>
+                </div>
+                
+                <div class="example-box">
+                    <div class="example-title">Erreurs courantes</div>
+                    <ul class="styled-list">
+                        <li>Oublier le point-virgule entre déclarations</li>
+                        <li>Utiliser un espace au lieu de deux-points (<code>color blue</code> au lieu de <code>color: blue</code>)</li>
+                        <li>Abuser de <code>!important</code> au lieu de résoudre les problèmes de spécificité</li>
+                        <li>Mélanger les guillemets dans les valeurs</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 2: TYPES DE SÉLECTEURS ==================== -->
+        <section id="selectors" class="content-section">
+            <div class="section-header">
+                <h2>Types de sélecteurs CSS</h2>
+                <p class="section-intro">Les sélecteurs permettent de cibler précisément les éléments HTML à styliser. Maîtriser les différents types est crucial pour écrire du CSS efficace.</p>
+            </div>
+            
+            <div class="grid">
+                <!-- Sélecteur universel -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>
+                        <h3>Sélecteur universel</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>*</code></p>
+                    <p>Cible tous les éléments du document. Utilisation courante pour les resets CSS.</p>
+                    <pre><code>* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}</code></pre>
+                    <p class="text-muted"><small><strong>Performance :</strong> Éviter pour des règles complexes, peut être coûteux.</small></p>
+                </div>
+                
+                <!-- Sélecteur de type -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        </svg>
+                        <h3>Sélecteur de type (élément)</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>element</code></p>
+                    <p>Cible tous les éléments d'un type donné.</p>
+                    <pre><code>p { color: navy; }
+div { display: block; }
+a { text-decoration: none; }</code></pre>
+                    <div class="example-demo">
+                        <p style="color: navy;">Ce paragraphe utilise le sélecteur <code>p</code>.</p>
+                    </div>
+                </div>
+                
+                <!-- Sélecteur de classe -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        <h3>Sélecteur de classe</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>.classname</code></p>
+                    <p>Cible tous les éléments avec l'attribut <code>class="classname"</code>. Le plus utilisé en pratique.</p>
+                    <pre><code>.btn { 
+    padding: 10px 20px; 
+    background: blue;
+    color: white;
+}
+
+.btn-large { font-size: 18px; }</code></pre>
+                    <div class="example-demo">
+                        <button style="padding: 10px 20px; background: blue; color: white; border: none; border-radius: 4px; cursor: pointer;">Bouton stylisé</button>
+                    </div>
+                    <p class="text-muted mt-md"><small><strong>Bonne pratique :</strong> Utiliser des noms de classes descriptifs et réutilisables (BEM : Block-Element-Modifier).</small></p>
+                </div>
+                
+                <!-- Sélecteur d'ID -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                        </svg>
+                        <h3>Sélecteur d'ID</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>#idname</code></p>
+                    <p>Cible l'élément unique avec l'attribut <code>id="idname"</code>. Haute spécificité.</p>
+                    <pre><code>#header { 
+    background: #f0f0f0; 
+    height: 80px;
+}
+
+#main-content { max-width: 1200px; }</code></pre>
+                    <p class="text-muted"><small><strong>Attention :</strong> Les ID ont une spécificité très élevée, difficile à surcharger. Préférer les classes pour le styling.</small></p>
+                </div>
+                
+                <!-- Sélecteur d'attribut -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <h3>Sélecteur d'attribut</h3>
+                    </div>
+                    <p>Cible les éléments selon leurs attributs HTML.</p>
+                    <pre><code>/* Présence d'attribut */
+[disabled] { opacity: 0.5; }
+
+/* Valeur exacte */
+[type="text"] { border: 1px solid gray; }
+
+/* Commence par */
+[href^="https"] { color: green; }
+
+/* Termine par */
+[src$=".pdf"] { 
+    background: url(pdf-icon.svg);
+}
+
+/* Contient */
+[class*="btn"] { cursor: pointer; }</code></pre>
+                    <p class="text-muted"><small><strong>Cas d'usage :</strong> Styliser des formulaires, liens externes, types de fichiers.</small></p>
+                </div>
+                
+                <!-- Pseudo-classes -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <h3>Pseudo-classes</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>:pseudo-classe</code></p>
+                    <p>Cible les éléments dans un état spécifique ou selon leur position.</p>
+                    <pre><code>/* États interactifs */
+a:hover { color: red; }
+a:active { transform: scale(0.95); }
+input:focus { border-color: blue; }
+button:disabled { opacity: 0.5; }
+
+/* États de validation */
+input:valid { border-color: green; }
+input:invalid { border-color: red; }
+
+/* Position dans le parent */
+li:first-child { margin-top: 0; }
+li:last-child { margin-bottom: 0; }
+li:nth-child(odd) { background: #f9f9f9; }
+li:nth-child(3n) { color: blue; }
+
+/* Autres */
+:not(.special) { color: gray; }
+:root { --main-color: blue; }</code></pre>
+                    <div class="example-demo">
+                        <a href="#" style="color: blue; text-decoration: none;" onmouseover="this.style.color='red'" onmouseout="this.style.color='blue'">Survolez ce lien</a>
+                    </div>
+                    <p class="text-muted mt-md"><small><strong>Accessibilité :</strong> Toujours accompagner <code>:hover</code> de <code>:focus-visible</code> pour le clavier.</small></p>
+                </div>
+                
+                <!-- Pseudo-éléments -->
+                <div class="card">
+                    <div class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        <h3>Pseudo-éléments</h3>
+                    </div>
+                    <p><strong>Syntaxe moderne :</strong> <code>::pseudo-element</code> (double deux-points)</p>
+                    <p>Crée des éléments virtuels pour styliser des parties spécifiques.</p>
+                    <pre><code>/* Avant et après */
+.quote::before {
+    content: "« ";
+    color: gray;
+}
+.quote::after {
+    content: " »";
+    color: gray;
+}
+
+/* Première ligne/lettre */
+p::first-line { font-weight: bold; }
+p::first-letter { 
+    font-size: 2em; 
+    float: left;
+}
+
+/* Sélection */
+::selection {
+    background: yellow;
+    color: black;
+}</code></pre>
+                    <p class="text-muted"><small><strong>Note :</strong> Ancienne syntaxe <code>:before</code> encore supportée mais <code>::before</code> est recommandé.</small></p>
+                </div>
+            </div>
+            
+            <!-- Spécificité -->
+            <div class="card mt-md">
+                <div class="card-title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3h7v7H3z"></path>
+                        <path d="M14 3h7v7h-7z"></path>
+                        <path d="M14 14h7v7h-7z"></path>
+                        <path d="M3 14h7v7H3z"></path>
+                    </svg>
+                    <h3>Spécificité des sélecteurs</h3>
+                </div>
+                <p>Lorsque plusieurs règles ciblent le même élément, la spécificité détermine laquelle s'applique. Calcul en 4 niveaux : <code>(inline, IDs, classes/attributs/pseudo-classes, éléments/pseudo-éléments)</code></p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sélecteur</th>
+                                <th>Spécificité</th>
+                                <th>Priorité</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>p</code></td>
+                                <td>(0, 0, 0, 1)</td>
+                                <td>Faible</td>
+                            </tr>
+                            <tr>
+                                <td><code>.btn</code></td>
+                                <td>(0, 0, 1, 0)</td>
+                                <td>Moyenne</td>
+                            </tr>
+                            <tr>
+                                <td><code>#submit</code></td>
+                                <td>(0, 1, 0, 0)</td>
+                                <td>Haute</td>
+                            </tr>
+                            <tr>
+                                <td><code>style=""</code> (inline)</td>
+                                <td>(1, 0, 0, 0)</td>
+                                <td>Très haute</td>
+                            </tr>
+                            <tr>
+                                <td><code>!important</code></td>
+                                <td>∞</td>
+                                <td>Maximum</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="example-box mt-md">
+                    <div class="example-title">Exemple de conflit de spécificité</div>
+                    <pre><code>/* Spécificité (0,0,1,0) */
+.btn { color: blue; }
+
+/* Spécificité (0,1,0,0) - GAGNE */
+#submit { color: red; }
+
+/* Même si .btn vient après, #submit gagne */</code></pre>
+                    <p class="mt-md"><strong>Bonne pratique :</strong> Garder une spécificité basse et homogène. Éviter les ID pour le styling, préférer les classes.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 3: COMBINATEURS CSS ==================== -->
+        <section id="combinators" class="content-section">
+            <div class="section-header">
+                <h2>Combinateurs CSS</h2>
+                <p class="section-intro">Les combinateurs permettent de créer des relations entre sélecteurs pour cibler des éléments selon leur position dans le DOM.</p>
+            </div>
+            
+            <div class="grid">
+                <!-- Descendant -->
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Descendant (espace)</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>A B</code></p>
+                    <p>Cible tous les <code>B</code> descendants de <code>A</code> (à n'importe quel niveau).</p>
+                    <pre><code>/* Tous les <p> dans .container */
+.container p {
+    line-height: 1.6;
+}
+
+/* Tous les <a> dans <nav> */
+nav a {
+    text-decoration: none;
+}</code></pre>
+                    <div class="example-demo">
+                        <div style="border: 2px solid #ddd; padding: 10px;">
+                            .container
+                            <div style="border: 1px dashed #aaa; padding: 5px; margin-top: 5px;">
+                                <p style="color: blue;">Ce <code>&lt;p&gt;</code> est ciblé</p>
+                                <div>
+                                    <p style="color: blue;">Ce <code>&lt;p&gt;</code> aussi (descendant indirect)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted"><small><strong>Performance :</strong> Large portée, peut être coûteux. Éviter sur des DOM profonds.</small></p>
+                </div>
+                
+                <!-- Enfant direct -->
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Enfant direct (&gt;)</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>A &gt; B</code></p>
+                    <p>Cible uniquement les <code>B</code> enfants directs de <code>A</code>.</p>
+                    <pre><code>/* Uniquement les <li> directs de <ul> */
+ul > li {
+    list-style: square;
+}
+
+/* Enfants directs de .card */
+.card > h3 {
+    margin-top: 0;
+}</code></pre>
+                    <div class="example-demo">
+                        <div style="border: 2px solid #ddd; padding: 10px;">
+                            .container
+                            <p style="color: green; margin: 5px 0;">Enfant direct ✓</p>
+                            <div style="border: 1px dashed #aaa; padding: 5px; margin-top: 5px;">
+                                <p style="color: gray; margin: 5px 0;">Pas enfant direct ✗</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted"><small><strong>Usage :</strong> Plus performant que descendant, meilleur contrôle.</small></p>
+                </div>
+                
+                <!-- Adjacent sibling -->
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Frère adjacent (+)</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>A + B</code></p>
+                    <p>Cible <code>B</code> immédiatement après <code>A</code> (même parent, position adjacente).</p>
+                    <pre><code>/* <p> juste après <h2> */
+h2 + p {
+    font-weight: bold;
+    margin-top: 0;
+}
+
+/* Label après input checkbox */
+input[type="checkbox"] + label {
+    cursor: pointer;
+}</code></pre>
+                    <div class="example-demo">
+                        <h4 style="margin: 0;">Titre</h4>
+                        <p style="font-weight: bold; color: green; margin: 5px 0;">Ce paragraphe est adjacent ✓</p>
+                        <p style="margin: 5px 0;">Ce paragraphe ne l'est pas ✗</p>
+                    </div>
+                </div>
+                
+                <!-- General sibling -->
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Frère général (~)</h3>
+                    </div>
+                    <p><strong>Syntaxe :</strong> <code>A ~ B</code></p>
+                    <p>Cible tous les <code>B</code> frères après <code>A</code> (même parent, pas forcément adjacents).</p>
+                    <pre><code>/* Tous les <p> après <h2> */
+h2 ~ p {
+    color: navy;
+}
+
+/* Inputs après un input:checked */
+input:checked ~ input {
+    opacity: 0.5;
+}</code></pre>
+                    <div class="example-demo">
+                        <h4 style="margin: 0;">Titre</h4>
+                        <p style="color: navy; margin: 5px 0;">Frère 1 ✓</p>
+                        <div style="margin: 5px 0;">Autre élément</div>
+                        <p style="color: navy; margin: 5px 0;">Frère 2 ✓</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Combinaisons avancées -->
+            <div class="card mt-md">
+                <div class="card-title">
+                    <h3>Combinaisons avancées</h3>
+                </div>
+                <p>On peut chaîner plusieurs combinateurs pour des sélections très précises.</p>
+                <pre><code>/* Tous les <a> dans <li> enfants directs de <nav> */
+nav > ul > li a {
+    padding: 10px;
+}
+
+/* <p> adjacent à <h2> dans .article */
+.article h2 + p {
+    font-size: 1.1em;
+}
+
+/* Tous les <span> après <input:focus> dans .form */
+.form input:focus ~ span {
+    color: blue;
+}</code></pre>
+                
+                <div class="example-box mt-md">
+                    <div class="example-title">Erreurs courantes</div>
+                    <ul class="styled-list">
+                        <li>Confondre <code>+</code> (adjacent immédiat) et <code>~</code> (tous les suivants)</li>
+                        <li>Oublier que <code>+</code> et <code>~</code> ne ciblent que les frères suivants, jamais les précédents</li>
+                        <li>Surqualifier les sélecteurs : <code>div.container > div.row</code> au lieu de <code>.container > .row</code></li>
+                        <li>Trop de niveaux de descendance : impacte performance et spécificité</li>
+                    </ul>
+                </div>
+                
+                <div class="example-box">
+                    <div class="example-title">Bonnes pratiques</div>
+                    <ul class="styled-list">
+                        <li>Préférer <code>&gt;</code> à l'espace quand possible (plus performant, plus explicite)</li>
+                        <li>Limiter la profondeur des sélecteurs (max 3-4 niveaux)</li>
+                        <li>Utiliser des classes plutôt que de longues chaînes de combinateurs</li>
+                        <li>Documenter les sélecteurs complexes avec des commentaires</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 4: COULEURS ET MISE EN FORME ==================== -->
+        <section id="colors" class="content-section">
+            <div class="section-header">
+                <h2>Couleurs et mise en forme</h2>
+                <p class="section-intro">CSS offre plusieurs formats de couleurs et propriétés de mise en forme. Maîtriser ces outils est essentiel pour créer des interfaces attractives et accessibles.</p>
+            </div>
+            
+            <!-- Formats de couleurs -->
+            <div class="card">
+                <div class="card-title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                    </svg>
+                    <h3>Formats de couleurs CSS</h3>
+                </div>
+                
+                <h4>1. Noms de couleurs</h4>
+                <p>140 noms prédéfinis (ex : <code>red</code>, <code>blue</code>, <code>lightgray</code>)</p>
+                <pre><code>color: red;
+background: cornflowerblue;
+border-color: transparent;</code></pre>
+                <div class="example-demo" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="width: 60px; height: 60px; background: red; border-radius: 4px;"></div>
+                    <div style="width: 60px; height: 60px; background: blue; border-radius: 4px;"></div>
+                    <div style="width: 60px; height: 60px; background: green; border-radius: 4px;"></div>
+                    <div style="width: 60px; height: 60px; background: orange; border-radius: 4px;"></div>
+                    <div style="width: 60px; height: 60px; background: purple; border-radius: 4px;"></div>
+                </div>
+                
+                <h4 class="mt-md">2. Hexadécimal</h4>
+                <p><strong>Syntaxe :</strong> <code>#RRGGBB</code> ou <code>#RGB</code> (raccourci)</p>
+                <pre><code>color: #ff0000;        /* Rouge */
+color: #f00;           /* Rouge (raccourci) */
+color: #336699;        /* Bleu gris */
+color: #369;           /* Bleu gris (raccourci) */
+color: #00000080;      /* Noir 50% opacité (8 digits) */</code></pre>
+                
+                <h4 class="mt-md">3. RGB / RGBA</h4>
+                <p><strong>Syntaxe :</strong> <code>rgb(red, green, blue)</code> ou <code>rgba(red, green, blue, alpha)</code></p>
+                <p>Valeurs : 0-255 pour RGB, 0-1 pour alpha</p>
+                <pre><code>color: rgb(255, 0, 0);           /* Rouge */
+color: rgb(51, 102, 153);        /* Bleu gris */
+background: rgba(0, 0, 0, 0.5);  /* Noir semi-transparent */
+background: rgba(255, 255, 255, 0.9); /* Blanc presque opaque */</code></pre>
+                <div class="example-demo" style="position: relative; height: 100px;">
+                    <div style="position: absolute; inset: 0; background: rgb(255, 0, 0); border-radius: 4px;"></div>
+                    <div style="position: absolute; inset: 0; background: rgba(0, 0, 255, 0.5); border-radius: 4px;"></div>
+                </div>
+                
+                <h4 class="mt-md">4. HSL / HSLA</h4>
+                <p><strong>Syntaxe :</strong> <code>hsl(hue, saturation, lightness)</code></p>
+                <ul class="styled-list">
+                    <li><strong>Hue</strong> : teinte en degrés (0-360) - 0=rouge, 120=vert, 240=bleu</li>
+                    <li><strong>Saturation</strong> : pourcentage (0%=gris, 100%=couleur pure)</li>
+                    <li><strong>Lightness</strong> : luminosité (0%=noir, 50%=normal, 100%=blanc)</li>
+                </ul>
+                <pre><code>color: hsl(0, 100%, 50%);        /* Rouge pur */
+color: hsl(120, 100%, 50%);      /* Vert pur */
+color: hsl(240, 100%, 50%);      /* Bleu pur */
+background: hsl(200, 50%, 70%);  /* Bleu clair */
+background: hsla(0, 0%, 0%, 0.3); /* Noir transparent */</code></pre>
+                <p class="text-muted"><small><strong>Avantage :</strong> Plus intuitif pour créer des variations (éclaircir/assombrir en changeant L, désaturer en changeant S)</small></p>
+                
+                <h4 class="mt-md">5. Variables CSS (Custom Properties)</h4>
+                <p>Définir des couleurs réutilisables dans <code>:root</code> ou n'importe quel sélecteur.</p>
+                <pre><code>:root {
+    --primary-color: #6366f1;
+    --secondary-color: #8b5cf6;
+    --text-dark: #1a1a2e;
+    --bg-light: #f8f9fa;
+}
+
+.button {
+    background: var(--primary-color);
+    color: white;
+}
+
+.card {
+    background: var(--bg-light);
+    color: var(--text-dark);
+}</code></pre>
+                <p class="text-muted"><small><strong>Bonne pratique :</strong> Utiliser des variables pour faciliter la maintenance et le theming.</small></p>
+            </div>
+            
+            <!-- Propriétés de couleur -->
+            <div class="card mt-md">
+                <div class="card-title">
+                    <h3>Propriétés principales</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Propriété</th>
+                                <th>Description</th>
+                                <th>Exemple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>color</code></td>
+                                <td>Couleur du texte</td>
+                                <td><code>color: #333;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>background-color</code></td>
+                                <td>Couleur de fond</td>
+                                <td><code>background-color: lightblue;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>border-color</code></td>
+                                <td>Couleur de bordure</td>
+                                <td><code>border-color: red;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>opacity</code></td>
+                                <td>Opacité globale (0-1)</td>
+                                <td><code>opacity: 0.5;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>box-shadow</code></td>
+                                <td>Ombre portée</td>
+                                <td><code>box-shadow: 0 4px 10px rgba(0,0,0,0.2);</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>text-shadow</code></td>
+                                <td>Ombre de texte</td>
+                                <td><code>text-shadow: 2px 2px 4px gray;</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Gradients -->
+            <div class="card mt-md">
+                <div class="card-title">
+                    <h3>Dégradés (Gradients)</h3>
+                </div>
+                
+                <h4>Dégradé linéaire</h4>
+                <pre><code>/* Simple */
+background: linear-gradient(to right, red, blue);
+
+/* Avec angle */
+background: linear-gradient(45deg, #667eea, #764ba2);
+
+/* Multiples couleurs */
+background: linear-gradient(to bottom, 
+    red 0%, 
+    yellow 50%, 
+    green 100%
+);</code></pre>
+                <div class="example-demo" style="height: 100px; background: linear-gradient(to right, red, blue); border-radius: 8px;"></div>
+                
+                <h4 class="mt-md">Dégradé radial</h4>
+                <pre><code>background: radial-gradient(circle, white, black);
+background: radial-gradient(ellipse at center, 
+    rgba(255,255,255,1) 0%, 
+    rgba(0,0,0,1) 100%
+);</code></pre>
+                <div class="example-demo" style="height: 100px; background: radial-gradient(circle, white, black); border-radius: 8px;"></div>
+            </div>
+            
+            <!-- Accessibilité -->
+            <div class="card mt-md">
+                <div class="card-title">
+                    <h3>Accessibilité et contraste</h3>
+                </div>
+                <p>Le contraste entre texte et fond est crucial pour l'accessibilité (WCAG).</p>
+                
+                <h4>Ratios de contraste minimums</h4>
+                <ul class="styled-list">
+                    <li><strong>Niveau AA :</strong> 4.5:1 pour texte normal, 3:1 pour texte large</li>
+                    <li><strong>Niveau AAA :</strong> 7:1 pour texte normal, 4.5:1 pour texte large</li>
+                </ul>
+                
+                <div class="example-box mt-md">
+                    <div class="example-title">Exemples de contrastes</div>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="background: white; color: #333; padding: 10px; border-radius: 4px;">
+                            <strong>Bon contraste</strong> - #333 sur blanc (12.6:1) ✓
+                        </div>
+                        <div style="background: #6366f1; color: white; padding: 10px; border-radius: 4px;">
+                            <strong>Bon contraste</strong> - Blanc sur #6366f1 (5.8:1) ✓
+                        </div>
+                        <div style="background: white; color: #ccc; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                            <strong>Mauvais contraste</strong> - #ccc sur blanc (1.8:1) ✗
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="example-box">
+                    <div class="example-title">Outils de vérification</div>
+                    <ul class="styled-list">
+                        <li><strong>WebAIM Contrast Checker</strong> - Vérifier les ratios</li>
+                        <li><strong>Chrome DevTools</strong> - Indicateur de contraste dans l'inspecteur</li>
+                        <li><strong>Axe DevTools</strong> - Extension pour audits a11y</li>
+                    </ul>
+                </div>
+                
+                <div class="example-box">
+                    <div class="example-title">Bonnes pratiques couleurs</div>
+                    <ul class="styled-list">
+                        <li>Ne jamais utiliser la couleur comme seul moyen de transmettre l'information</li>
+                        <li>Tester avec des simulateurs de daltonisme</li>
+                        <li>Utiliser des variables CSS pour centraliser la palette</li>
+                        <li>Préférer HSL pour créer des variations cohérentes</li>
+                        <li>Vérifier les contrastes sur tous les états (hover, focus, disabled)</li>
+                        <li>Éviter les couleurs pures très saturées pour de grandes surfaces</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 5: ATELIER PRATIQUE ==================== -->
+        <section id="atelier" class="content-section">
+            <div class="section-header">
+                <h2>Atelier pratique</h2>
+                <p class="section-intro">Testez vos connaissances en écrivant du CSS en temps réel. Saisissez une règle CSS et voyez le résultat immédiatement !</p>
+            </div>
+            
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span class="editor-title">Éditeur CSS Live</span>
+                    <span class="editor-stats" id="css-size">0 caractères</span>
+                </div>
+                <div class="editor-body">
+                    <div>
+                        <label for="css-input" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Saisissez votre CSS :</label>
+                        <textarea 
+                            id="css-input" 
+                            class="editor-input" 
+                            placeholder="Exemple: .demo-box { background: coral; padding: 20px; border-radius: 10px; }"
+                            aria-label="Éditeur CSS"
+                        ></textarea>
+                        <div class="editor-actions mt-md">
+                            <button class="btn btn-primary" id="apply-css">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Appliquer
+                            </button>
+                            <button class="btn btn-secondary" id="reset-css">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                    <path d="M3 3v5h5"></path>
+                                </svg>
+                                Réinitialiser
+                            </button>
+                        </div>
+                        <div id="css-error" style="display: none; margin-top: 1rem;"></div>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Aperçu en direct :</label>
+                        <div class="editor-preview" id="css-preview">
+                            <div class="demo-box" style="background: #f0f0f0; padding: 20px; border-radius: 8px; border: 2px dashed #ccc;">
+                                <h4 style="margin: 0 0 10px 0;">Zone de démonstration</h4>
+                                <p style="margin: 0;">Cet élément a la classe <code>demo-box</code>. Appliquez-lui du style !</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-md">
+                <div class="card-title">
+                    <h3>Suggestions d'exercices</h3>
+                </div>
+                <ul class="styled-list">
+                    <li>Changer la couleur de fond et du texte de <code>.demo-box</code></li>
+                    <li>Ajouter une ombre avec <code>box-shadow</code></li>
+                    <li>Créer un dégradé avec <code>linear-gradient</code></li>
+                    <li>Modifier les espacements avec <code>padding</code> et <code>margin</code></li>
+                    <li>Changer la police avec <code>font-family</code> et <code>font-size</code></li>
+                    <li>Ajouter une bordure avec <code>border</code> et <code>border-radius</code></li>
+                    <li>Animer au survol avec <code>.demo-box:hover { transform: scale(1.05); }</code></li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 6: QUIZ INTERACTIF ==================== -->
+        <section id="quiz" class="content-section">
+            <div class="section-header">
+                <h2>Quiz interactif</h2>
+                <p class="section-intro">Testez vos connaissances avec ce quiz de 10 questions couvrant tous les modules.</p>
+            </div>
+            
+            <div class="quiz-container" id="quiz-container">
+                <div class="quiz-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="quiz-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="quiz-progress-text">Question 1 / 10</div>
+                </div>
+                
+                <div id="quiz-content">
+                    <!-- Généré dynamiquement par JS -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 7: ERREURS COURANTES ==================== -->
+        <section id="errors" class="content-section">
+            <div class="section-header">
+                <h2>Erreurs courantes à éviter</h2>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">1</span>
+                        <h4>Surqualification des sélecteurs</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> <code>div.container > div.row > div.col</code></p>
+                    <p><strong>Mieux :</strong> <code>.container > .row > .col</code></p>
+                    <p class="text-muted">Les balises ajoutent de la spécificité inutile et rendent le code moins flexible.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">2</span>
+                        <h4>Abus de !important</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> Utiliser <code>!important</code> pour résoudre tous les conflits</p>
+                    <p><strong>Mieux :</strong> Comprendre et gérer la spécificité correctement</p>
+                    <p class="text-muted">!important rend le code impossible à surcharger et crée des dettes techniques.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">3</span>
+                        <h4>Oublier le point-virgule</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> <code>color: red background: blue;</code></p>
+                    <p><strong>Mieux :</strong> <code>color: red; background: blue;</code></p>
+                    <p class="text-muted">Sans point-virgule, les déclarations suivantes sont ignorées.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">4</span>
+                        <h4>Sélecteurs trop profonds</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> <code>.header .nav .menu .item .link</code> (5 niveaux)</p>
+                    <p><strong>Mieux :</strong> <code>.nav-link</code> (classe directe)</p>
+                    <p class="text-muted">Impact négatif sur performance et maintenabilité.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">5</span>
+                        <h4>Mauvais contraste de couleurs</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> Texte gris clair sur fond blanc</p>
+                    <p><strong>Mieux :</strong> Vérifier les ratios de contraste (4.5:1 minimum)</p>
+                    <p class="text-muted">Problèmes d'accessibilité pour les utilisateurs malvoyants.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">6</span>
+                        <h4>Mauvaise utilisation de :not()</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> <code>*:not(.special):not(.other):not(.more)</code></p>
+                    <p><strong>Mieux :</strong> Utiliser des classes positives</p>
+                    <p class="text-muted">Complexité élevée et performance dégradée.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">7</span>
+                        <h4>Unités inappropriées</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> Utiliser <code>px</code> partout pour les tailles de police</p>
+                    <p><strong>Mieux :</strong> Utiliser <code>rem</code> ou <code>em</code> pour la scalabilité</p>
+                    <p class="text-muted">Les unités relatives permettent un meilleur responsive et accessibilité.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <span class="badge badge-error">8</span>
+                        <h4>Oublier :focus-visible</h4>
+                    </div>
+                    <p><strong>Erreur :</strong> Styliser uniquement <code>:hover</code></p>
+                    <p><strong>Mieux :</strong> Toujours inclure <code>:focus-visible</code></p>
+                    <p class="text-muted">Essentiel pour la navigation au clavier et l'accessibilité.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==================== SECTION 8: RESSOURCES ==================== -->
+        <section id="resources" class="content-section">
+            <div class="section-header">
+                <h2>Ressources et outils</h2>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Documentation officielle</h3>
+                    </div>
+                    <ul class="styled-list">
+                        <li><strong>MDN Web Docs</strong> - Documentation complète CSS</li>
+                        <li><strong>W3C CSS Specifications</strong> - Standards officiels</li>
+                        <li><strong>Can I Use</strong> - Compatibilité des fonctionnalités</li>
+                        <li><strong>CSS Tricks</strong> - Tutoriels et astuces</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Outils de développement</h3>
+                    </div>
+                    <ul class="styled-list">
+                        <li><strong>Chrome DevTools</strong> - Inspecteur intégré</li>
+                        <li><strong>Firefox Developer Tools</strong> - Outils de debug</li>
+                        <li><strong>CSS Validator</strong> - Validation W3C</li>
+                        <li><strong>Prettier</strong> - Formateur de code</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Générateurs et aides</h3>
+                    </div>
+                    <ul class="styled-list">
+                        <li><strong>CSS Gradient Generator</strong> - Créer des dégradés</li>
+                        <li><strong>Box Shadow Generator</strong> - Générateur d'ombres</li>
+                        <li><strong>Color Palette Generators</strong> - Coolors, Adobe Color</li>
+                        <li><strong>CSS Grid Generator</strong> - Visualiser Grid</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <h3>Accessibilité</h3>
+                    </div>
+                    <ul class="styled-list">
+                        <li><strong>WebAIM Contrast Checker</strong> - Vérifier les contrastes</li>
+                        <li><strong>Axe DevTools</strong> - Audits d'accessibilité</li>
+                        <li><strong>WAVE</strong> - Évaluation d'accessibilité</li>
+                        <li><strong>WCAG Guidelines</strong> - Standards d'accessibilité</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-md">
+                <div class="card-title">
+                    <h3>Mini FAQ</h3>
+                </div>
+                
+                <details style="margin-bottom: 1rem;">
+                    <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem; background: var(--surface-elevated); border-radius: 4px;">Quelle est la différence entre classe et ID ?</summary>
+                    <div style="padding: 1rem; border-left: 3px solid var(--accent); margin-top: 0.5rem;">
+                        <p>Les <strong>classes</strong> (<code>.nom</code>) peuvent être réutilisées sur plusieurs éléments et ont une spécificité moyenne. Les <strong>ID</strong> (<code>#nom</code>) doivent être uniques sur la page et ont une spécificité très élevée. Pour le styling, privilégiez toujours les classes.</p>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom: 1rem;">
+                    <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem; background: var(--surface-elevated); border-radius: 4px;">Quand utiliser HSL plutôt que RGB ?</summary>
+                    <div style="padding: 1rem; border-left: 3px solid var(--accent); margin-top: 0.5rem;">
+                        <p><strong>HSL</strong> est plus intuitif pour créer des variations de couleur. Pour éclaircir une couleur, il suffit d'augmenter la luminosité (L). Pour la désaturer, réduire la saturation (S). RGB est plus direct pour reproduire des couleurs exactes, mais moins pratique pour les variations.</p>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom: 1rem;">
+                    <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem; background: var(--surface-elevated); border-radius: 4px;">Comment résoudre un conflit de spécificité sans !important ?</summary>
+                    <div style="padding: 1rem; border-left: 3px solid var(--accent); margin-top: 0.5rem;">
+                        <p>Plusieurs solutions : 1) Augmenter la spécificité avec une classe supplémentaire, 2) Réorganiser l'ordre des règles dans le CSS, 3) Utiliser un sélecteur plus spécifique, 4) Dupliquer le sélecteur (<code>.btn.btn</code> a plus de spécificité que <code>.btn</code>).</p>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom: 1rem;">
+                    <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem; background: var(--surface-elevated); border-radius: 4px;">Pourquoi mes styles ne s'appliquent-ils pas ?</summary>
+                    <div style="padding: 1rem; border-left: 3px solid var(--accent); margin-top: 0.5rem;">
+                        <p>Vérifiez : 1) La spécificité (une règle plus spécifique l'emporte), 2) L'ordre dans le fichier CSS (la dernière règle gagne à spécificité égale), 3) La syntaxe (point-virgule, deux-points), 4) Le sélecteur (correspond-il vraiment à l'élément ?), 5) Le cache du navigateur.</p>
+                    </div>
+                </details>
+                
+                <details>
+                    <summary style="cursor: pointer; font-weight: 600; padding: 0.5rem; background: var(--surface-elevated); border-radius: 4px;">Que faire si j'ai besoin de cibler un élément très spécifique ?</summary>
+                    <div style="padding: 1rem; border-left: 3px solid var(--accent); margin-top: 0.5rem;">
+                        <p>PrivilContinuer20:59&égier l'ajout d'une classe unique plutôt que d'empiler des combinateurs. Par exemple, au lieu de <code>.header > .nav > .menu > li > a.active</code>, créez simplement une classe <code>.nav-link-active</code>. C'est plus maintenable et performant.</p>
+</div>
+</details>
+</div>
+        <div class="card mt-md text-center">
+            <h3 class="mb-md">Télécharger le cheat-sheet</h3>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="copy-cheatsheet">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copier le cheat-sheet
+                </button>
+                <button class="btn btn-secondary" id="download-cheatsheet">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Télécharger le résumé
+                </button>
+            </div>
+        </div>
+    </section>
+    
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer role="contentinfo">
+    <div class="container">
+        <p>Guide CSS Complet - Tous droits réservés © 2026</p>
+        <p class="text-muted">Créé avec passion pour l'apprentissage du CSS</p>
+    </div>
+</footer>
+
+<!-- ==================== PRESENTATION OVERLAY ==================== -->
+<div class="presentation-overlay" id="presentation-overlay" role="dialog" aria-modal="true" aria-label="Mode présentation">
+    <div class="slide-counter" id="slide-counter" aria-live="polite">1 / 6</div>
+    
+    <!-- Slides générées dynamiquement -->
+    <div class="presentation-slide" data-slide="1">
+        <h1 class="text-center">Guide CSS Complet</h1>
+        <p class="text-center" style="font-size: 1.5rem; margin-top: 2rem;">Structure, Sélecteurs, Combinateurs & Couleurs</p>
+    </div>
+    
+    <div class="presentation-slide" data-slide="2">
+        <h2>Structure d'une règle CSS</h2>
+        <pre style="font-size: 1.2rem; margin-top: 2rem;"><code>sélecteur {
+propriété: valeur;
+propriété: valeur;
+}</code></pre>
+<ul class="styled-list" style="margin-top: 2rem; font-size: 1.1rem;">
+<li>Sélecteur : cible les éléments</li>
+<li>Propriété : caractéristique à modifier</li>
+<li>Valeur : nouvelle valeur assignée</li>
+</ul>
+</div>
+    <div class="presentation-slide" data-slide="3">
+        <h2>Types de sélecteurs</h2>
+        <div style="display: grid; gap: 1rem; margin-top: 2rem;">
+            <div><code>p</code> - Sélecteur de type</div>
+            <div><code>.btn</code> - Sélecteur de classe</div>
+            <div><code>#main</code> - Sélecteur d'ID</div>
+            <div><code>[disabled]</code> - Sélecteur d'attribut</div>
+            <div><code>:hover</code> - Pseudo-classe</div>
+            <div><code>::before</code> - Pseudo-élément</div>
+        </div>
+    </div>
+    
+    <div class="presentation-slide" data-slide="4">
+        <h2>Combinateurs CSS</h2>
+        <div style="display: grid; gap: 1rem; margin-top: 2rem;">
+            <div><code>A B</code> - Descendant (tous niveaux)</div>
+            <div><code>A > B</code> - Enfant direct</div>
+            <div><code>A + B</code> - Frère adjacent</div>
+            <div><code>A ~ B</code> - Frère général</div>
+        </div>
+    </div>
+    
+    <div class="presentation-slide" data-slide="5">
+        <h2>Formats de couleurs</h2>
+        <div style="display: grid; gap: 1rem; margin-top: 2rem;">
+            <div><code>red</code> - Nom de couleur</div>
+            <div><code>#ff0000</code> - Hexadécimal</div>
+            <div><code>rgb(255, 0, 0)</code> - RGB</div>
+            <div><code>hsl(0, 100%, 50%)</code> - HSL</div>
+            <div><code>var(--primary)</code> - Variable CSS</div>
+        </div>
+    </div>
+    
+    <div class="presentation-slide" data-slide="6">
+        <h2 class="text-center">Merci !</h2>
+        <p class="text-center" style="font-size: 1.3rem; margin-top: 2rem;">Continuez à pratiquer avec l'atelier et le quiz</p>
+    </div>
+    
+    <div class="presentation-nav">
+        <button class="btn btn-secondary" id="prev-slide" aria-label="Slide précédent">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <button class="btn btn-secondary" id="next-slide" aria-label="Slide suivant">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+        <button class="btn btn-secondary" id="close-presentation" aria-label="Fermer la présentation">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+    // ==================== THEME TOGGLE ====================
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Charger le thème sauvegardé
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', savedTheme);
+    
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+    
+    // ==================== SMOOTH SCROLL ====================
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+    
+    // ==================== CSS EDITOR ====================
+    const cssInput = document.getElementById('css-input');
+    const cssPreview = document.getElementById('css-preview');
+    const applyBtn = document.getElementById('apply-css');
+    const resetBtn = document.getElementById('reset-css');
+    const cssSize = document.getElementById('css-size');
+    const cssError = document.getElementById('css-error');
+    
+    // Style preview existant ou créer
+    let previewStyle = document.getElementById('preview-style');
+    if (!previewStyle) {
+        previewStyle = document.createElement('style');
+        previewStyle.id = 'preview-style';
+        document.head.appendChild(previewStyle);
+    }
+    
+    // Validation simple de CSS - vérifie la présence de { et }
+    function validateCSS(css) {
+        const trimmed = css.trim();
+        if (!trimmed) return { valid: false, message: 'Le CSS ne peut pas être vide.' };
+        
+        // Vérifier la présence de { et }
+        if (!trimmed.includes('{') || !trimmed.includes('}')) {
+            return { valid: false, message: 'Format invalide. Une règle CSS doit contenir { et }.' };
+        }
+        
+        // Vérifier que { vient avant }
+        const openBrace = trimmed.indexOf('{');
+        const closeBrace = trimmed.lastIndexOf('}');
+        if (openBrace > closeBrace) {
+            return { valid: false, message: 'Format invalide. { doit venir avant }.' };
+        }
+        
+        return { valid: true };
+    }
+    
+    // Mettre à jour la taille
+    cssInput.addEventListener('input', () => {
+        cssSize.textContent = `${cssInput.value.length} caractères`;
+    });
+    
+    // Appliquer le CSS
+    applyBtn.addEventListener('click', () => {
+        const css = cssInput.value;
+        const validation = validateCSS(css);
+        
+        if (!validation.valid) {
+            cssError.textContent = validation.message;
+            cssError.className = 'editor-error';
+            cssError.style.display = 'block';
+            return;
+        }
+        
+        cssError.style.display = 'none';
+        
+        // Scoper le CSS pour cibler uniquement le preview
+        const scopedCSS = `#css-preview ${css}`;
+        previewStyle.textContent = scopedCSS;
+    });
+    
+    // Réinitialiser
+    resetBtn.addEventListener('click', () => {
+        cssInput.value = '';
+        previewStyle.textContent = '';
+        cssSize.textContent = '0 caractères';
+        cssError.style.display = 'none';
+    });
+    
+    // ==================== QUIZ DATA ====================
+    const QUIZ_DATA = [
+        {
+            question: "Quel sélecteur cible tous les éléments <p> ?",
+            options: ["p", ".p", "#p", "*p"],
+            correct: 0,
+            explanation: "Le sélecteur de type <code>p</code> cible tous les éléments &lt;p&gt; du document."
+        },
+        {
+            question: "Lequel cible un élément avec class=\"btn\" ?",
+            options: ["btn", "#btn", ".btn", "*btn"],
+            correct: 2,
+            explanation: "Le point <code>.</code> indique un sélecteur de classe. <code>.btn</code> cible tous les éléments avec <code>class=\"btn\"</code>."
+        },
+        {
+            question: "Vrai ou Faux : #main .card sélectionne un descendant avec classe card dans l'élément avec id main.",
+            options: ["Vrai", "Faux"],
+            correct: 0,
+            explanation: "C'est vrai. <code>#main .card</code> utilise le combinateur descendant (espace) pour cibler tous les éléments avec la classe <code>card</code> à l'intérieur de l'élément avec <code>id=\"main\"</code>."
+        },
+        {
+            question: "Que sélectionne div > p ?",
+            options: ["Tous les <p> dans le document", "Les <p> enfants directs de <div>", "Les <p> après <div>", "Les <p> frères de <div>"],
+            correct: 1,
+            explanation: "Le symbole <code>&gt;</code> est le combinateur enfant direct. Il cible uniquement les éléments <code>&lt;p&gt;</code> qui sont des enfants directs de <code>&lt;div&gt;</code>."
+        },
+        {
+            question: "Quel format couleur est équivalent à #00ff00 ?",
+            options: ["rgb(0, 255, 0)", "rgb(0, 0, 255)", "hsl(0, 100%, 50%)", "hsl(240, 100%, 50%)"],
+            correct: 0,
+            explanation: "#00ff00 est le vert pur, équivalent à <code>rgb(0, 255, 0)</code> ou <code>hsl(120, 100%, 50%)</code>. La première option est correcte."
+        },
+        {
+            question: "Quelle pseudo-classe s'active au survol de la souris ?",
+            options: [":active", ":focus", ":hover", ":visited"],
+            correct: 2,
+            explanation: "<code>:hover</code> s'applique lorsque l'utilisateur survole un élément avec le curseur. N'oubliez pas d'ajouter <code>:focus-visible</code> pour l'accessibilité clavier !"
+        },
+        {
+            question: "Que fait le combinateur + ?",
+            options: ["Sélectionne tous les frères", "Sélectionne l'élément adjacent suivant", "Sélectionne les enfants directs", "Sélectionne tous les descendants"],
+            correct: 1,
+            explanation: "Le combinateur <code>+</code> (frère adjacent) sélectionne uniquement l'élément immédiatement suivant. Par exemple, <code>h2 + p</code> cible le premier <code>&lt;p&gt;</code> après un <code>&lt;h2&gt;</code>."
+        },
+        {
+            question: "Comment déclare-t-on une variable CSS ?",
+            options: ["$variable: valeur;", "var(--variable): valeur;", "--variable: valeur;", "@variable: valeur;"],
+            correct: 2,
+            explanation: "Les variables CSS (custom properties) se déclarent avec <code>--nom: valeur;</code> et s'utilisent avec <code>var(--nom)</code>."
+        },
+        {
+            question: "Quelle est la différence entre :before et ::before ?",
+            options: [
+                "Aucune différence",
+                "::before est la syntaxe moderne recommandée pour les pseudo-éléments",
+                ":before est plus performant",
+                "::before ne fonctionne que sur Chrome"
+            ],
+            correct: 1,
+            explanation: "<code>::before</code> (double deux-points) est la syntaxe moderne et recommandée pour les pseudo-éléments, introduite en CSS3 pour les distinguer des pseudo-classes (un seul deux-points). <code>:before</code> fonctionne toujours mais <code>::before</code> est préférable."
+        },
+        {
+            question: "Si deux règles ciblent le même élément, l'une avec .btn et l'autre avec #submit, laquelle a priorité ?",
+            options: ["La dernière dans le fichier CSS", ".btn car c'est une classe", "#submit car les ID ont une spécificité plus élevée", "Elles ont la même priorité"],
+            correct: 2,
+            explanation: "Les sélecteurs d'ID ont une spécificité beaucoup plus élevée que les classes. Dans ce cas, <code>#submit</code> l'emporte sur <code>.btn</code> indépendamment de l'ordre. C'est pourquoi on recommande d'éviter les ID pour le styling."
+        }
+    ];
+    
+    // ==================== QUIZ LOGIC ====================
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
+    
+    const quizContent = document.getElementById('quiz-content');
+    const progressBar = document.getElementById('quiz-progress-bar');
+    const progressText = document.getElementById('quiz-progress-text');
+    
+    function renderQuestion() {
+        const q = QUIZ_DATA[currentQuestion];
+        answered = false;
+        
+        quizContent.innerHTML = `
+            <div class="quiz-question">
+                <h3 class="question-text">${q.question}</h3>
+                <div class="quiz-options" id="quiz-options">
+                    ${q.options.map((opt, i) => `
+                        <button class="quiz-option" data-index="${i}" aria-label="Option ${i + 1}: ${opt}">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+                <div id="quiz-feedback" style="display: none;"></div>
+                <div style="margin-top: 1.5rem; display: none;" id="next-btn-container">
+                    <button class="btn btn-primary" id="next-question">
+                        ${currentQuestion < QUIZ_DATA.length - 1 ? 'Question suivante' : 'Voir les résultats'}
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Update progress
+        progressBar.style.width = `${((currentQuestion) / QUIZ_DATA.length) * 100}%`;
+        progressText.textContent = `Question ${currentQuestion + 1} / ${QUIZ_DATA.length}`;
+        
+        // Add event listeners
+        document.querySelectorAll('.quiz-option').forEach(btn => {
+            btn.addEventListener('click', handleAnswer);
+        });
+    }
+    
+    function handleAnswer(e) {
+        if (answered) return;
+        answered = true;
+        
+        const selectedIndex = parseInt(e.target.dataset.index);
+        const q = QUIZ_DATA[currentQuestion];
+        const isCorrect = selectedIndex === q.correct;
+        
+        if (isCorrect) score++;
+        
+        // Marquer les options
+        document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+            btn.disabled = true;
+            if (i === q.correct) {
+                btn.classList.add('correct');
+            } else if (i === selectedIndex && !isCorrect) {
+                btn.classList.add('incorrect');
+            }
+        });
+        
+        // Afficher le feedback
+        const feedback = document.getElementById('quiz-feedback');
+        feedback.className = isCorrect ? 'quiz-feedback' : 'quiz-feedback incorrect';
+        feedback.innerHTML = `
+            <strong>${isCorrect ? '✓ Correct !' : '✗ Incorrect'}</strong>
+            <p>${q.explanation}</p>
+        `;
+        feedback.style.display = 'block';
+        
+        // Afficher bouton suivant
+        document.getElementById('next-btn-container').style.display = 'block';
+        document.getElementById('next-question').addEventListener('click', nextQuestion);
+    }
+    
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < QUIZ_DATA.length) {
+            renderQuestion();
+        } else {
+            showResults();
+        }
+    }
+    
+    function showResults() {
+        const percentage = Math.round((score / QUIZ_DATA.length) * 100);
+        let message = '';
+        
+        if (percentage >= 90) message = '🏆 Excellent ! Vous maîtrisez CSS !';
+        else if (percentage >= 70) message = '👍 Très bien ! Continuez comme ça !';
+        else if (percentage >= 50) message = '👌 Pas mal, mais vous pouvez progresser !';
+        else message = '📚 Révisez et réessayez !';
+        
+        progressBar.style.width = '100%';
+        progressText.textContent = 'Quiz terminé !';
+        
+        quizContent.innerHTML = `
+            <div class="quiz-results">
+                <h3>Résultats du quiz</h3>
+                <div class="score-display">${score}/${QUIZ_DATA.length}</div>
+                <div class="results-message">${message}</div>
+                <p>Vous avez obtenu <strong>${percentage}%</strong> de bonnes réponses.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                    <button class="btn btn-primary" id="restart-quiz">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                            <path d="M3 3v5h5"></path>
+                        </svg>
+                        Recommencer
+                    </button>
+                    <button class="btn btn-secondary" id="copy-results">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copier résultat
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('restart-quiz').addEventListener('click', () => {
+            currentQuestion = 0;
+            score = 0;
+            renderQuestion();
+        });
+        
+        document.getElementById('copy-results').addEventListener('click', () => {
+            const text = `Quiz CSS - Score: ${score}/${QUIZ_DATA.length} (${percentage}%)`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Résultat copié dans le presse-papiers !');
+            });
+        });
+    }
+    
+    // Initialiser le quiz
+    renderQuestion();
+    
+    // ==================== PRESENTATION MODE ====================
+    const presentationBtn = document.getElementById('presentation-btn');
+    const presentationOverlay = document.getElementById('presentation-overlay');
+    const closePresentation = document.getElementById('close-presentation');
+    const prevSlide = document.getElementById('prev-slide');
+    const nextSlide = document.getElementById('next-slide');
+    const slideCounter = document.getElementById('slide-counter');
+    
+    let currentSlide = 1;
+    const totalSlides = document.querySelectorAll('.presentation-slide').length;
+    
+    function updateSlide() {
+        document.querySelectorAll('.presentation-slide').forEach((slide, i) => {
+            slide.classList.toggle('active', i + 1 === currentSlide);
+        });
+        slideCounter.textContent = `${currentSlide} / ${totalSlides}`;
+        slideCounter.setAttribute('aria-label', `Slide ${currentSlide} sur ${totalSlides}`);
+    }
+    
+    presentationBtn.addEventListener('click', () => {
+        presentationOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        currentSlide = 1;
+        updateSlide();
+    });
+    
+    closePresentation.addEventListener('click', () => {
+        presentationOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    
+    prevSlide.addEventListener('click', () => {
+        if (currentSlide > 1) {
+            currentSlide--;
+            updateSlide();
+        }
+    });
+    
+    nextSlide.addEventListener('click', () => {
+        if (currentSlide < totalSlides) {
+            currentSlide++;
+            updateSlide();
+        }
+    });
+    
+    // Navigation clavier
+    document.addEventListener('keydown', (e) => {
+        if (!presentationOverlay.classList.contains('active')) return;
+        
+        if (e.key === 'ArrowLeft' && currentSlide > 1) {
+            currentSlide--;
+            updateSlide();
+        } else if (e.key === 'ArrowRight' && currentSlide < totalSlides) {
+            currentSlide++;
+            updateSlide();
+        } else if (e.key === 'Escape') {
+            presentationOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // ==================== CHEAT SHEET ====================
+    const cheatSheetContent = `
+=================================================
+CSS CHEAT SHEET - Guide Complet
+STRUCTURE D'UNE RÈGLE CSS
+sélecteur {
+propriété: valeur;
+propriété: valeur;
+}
+Exemple:
+p {
+color: blue;
+font-size: 16px;
+}
+TYPES DE SÉLECTEURS
+
+
+         → Universel (tous les éléments)
+
+
+p              → Type (tous les <p>)
+.btn           → Classe (class="btn")
+#main          → ID (id="main")
+[disabled]     → Attribut (attribut présent)
+[type="text"]  → Attribut avec valeur
+:hover         → Pseudo-classe (état)
+::before       → Pseudo-élément (contenu généré)
+COMBINATEURS
+A B      → Descendant (tous les B dans A)
+A > B    → Enfant direct (B enfant direct de A)
+A + B    → Frère adjacent (B immédiatement après A)
+A ~ B    → Frère général (tous les B après A)
+FORMATS DE COULEURS
+red                    → Nom de couleur
+#ff0000 ou #f00       → Hexadécimal
+rgb(255, 0, 0)        → RGB
+rgba(255, 0, 0, 0.5)  → RGB avec transparence
+hsl(0, 100%, 50%)     → HSL (Teinte, Saturation, Luminosité)
+hsla(0, 100%, 50%, 0.5) → HSL avec transparence
+var(--primary-color)  → Variable CSS
+VARIABLES CSS
+Déclaration:
+:root {
+--primary: #6366f1;
+--spacing: 1rem;
+}
+Utilisation:
+.button {
+background: var(--primary);
+padding: var(--spacing);
+}
+UNITÉS PRINCIPALES
+px     → Pixels (absolue)
+%      → Pourcentage (relative au parent)
+em     → Relatif à la taille de police parent
+rem    → Relatif à la taille de police root
+vh/vw  → Viewport height/width (1vh = 1% de la hauteur)
+SPÉCIFICITÉ (du plus faible au plus fort)
+Type/Element         (0,0,0,1)  → p
+Classe/Attribut      (0,0,1,0)  → .btn
+ID                   (0,1,0,0)  → #main
+Inline style         (1,0,0,0)  → style=""
+!important           (∞)        → color: red !important;
+PROPRIÉTÉS COURANTES
+/* Couleurs et fond */
+color: blue;
+background-color: #f0f0f0;
+background: linear-gradient(to right, red, blue);
+/* Texte */
+font-size: 16px;
+font-weight: bold;
+text-align: center;
+line-height: 1.6;
+/* Box model */
+width: 100%;
+height: 200px;
+padding: 20px;
+margin: 10px auto;
+border: 1px solid gray;
+border-radius: 8px;
+/* Positionnement */
+position: relative;
+top: 10px;
+display: flex;
+justify-content: center;
+align-items: center;
+/* Effets */
+box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+transform: translateY(-5px);
+transition: all 0.3s ease;
+BONNES PRATIQUES
+✓ Utiliser des classes plutôt que des ID pour le styling
+✓ Préférer les unités relatives (rem, em, %)
+✓ Toujours inclure :focus-visible avec :hover
+✓ Vérifier les contrastes de couleurs (min 4.5:1)
+✓ Limiter la profondeur des sélecteurs (max 3-4 niveaux)
+✓ Éviter !important sauf cas exceptionnel
+✓ Utiliser des variables CSS pour la maintenance
+✓ Commenter les sections complexes
+ERREURS À ÉVITER
+✗ Oublier le point-virgule entre déclarations
+✗ Surqualifier les sélecteurs (div.container au lieu de .container)
+✗ Abuser de !important
+✗ Négliger l'accessibilité (contrastes, focus visible)
+✗ Utiliser uniquement px pour les tailles
+✗ Créer des sélecteurs trop profonds
+=================================================
+Guide créé avec ❤️ pour l'apprentissage CSS
+    `.trim();
+    
+    document.getElementById('copy-cheatsheet').addEventListener('click', () => {
+        navigator.clipboard.writeText(cheatSheetContent).then(() => {
+            alert('Cheat-sheet copié dans le presse-papiers !');
+        });
+    });
+    
+    document.getElementById('download-cheatsheet').addEventListener('click', () => {
+        const blob = new Blob([cheatSheetContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'css-cheatsheet.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+</script>
+</body>
+</html>
+```
